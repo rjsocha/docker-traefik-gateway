@@ -1,0 +1,54 @@
+version: "3"
+
+services:
+  gateway:
+    image: traefik:2.4
+    container_name: traefik-docker-gateway
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - service-gateway
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - acme:/acme
+    command:
+      - --log.level=info
+      - --providers.docker
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.defaultRule=Host(`{{ index .Labels "expose.vhost"}}`)
+      - --entrypoints.http.address=:80
+      - --entrypoints.https.address=:443
+      - --certificatesresolvers.letsencrypt.acme.storage=/acme/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=http
+
+  # Catch-all default vhost
+  default:
+    image: nginx:stable-alpine
+    container_name: traefik-docker-gateway-default
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - service-gateway
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.default.rule=HostRegexp(`{default:.*}`) 
+      - traefik.http.routers.default.entrypoints=http
+      - traefik.http.middlewares.server-header.headers.customresponseheaders.server=service-gateway
+      - traefik.http.routers.default.priority=1
+      - traefik.http.routers.default.middlewares=server-header
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf
+
+networks:
+  service-gateway:
+    name: service-gateway
+
+volumes:
+  acme:
+    name: traefik-gateway-acme
