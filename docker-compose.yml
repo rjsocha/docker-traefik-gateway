@@ -2,7 +2,7 @@ version: "3"
 
 services:
   gateway:
-    image: traefik:2.4
+    image: traefik:2.5
     container_name: traefik-docker-gateway
     restart: unless-stopped
     security_opt:
