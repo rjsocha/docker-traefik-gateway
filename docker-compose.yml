@@ -38,7 +38,7 @@ services:
       options:
         max-file: "5"
         max-size: "100m"
-        compress: true
+        compress: "true"
     container_name: traefik-docker-gateway-default
     restart: unless-stopped
     security_opt:
