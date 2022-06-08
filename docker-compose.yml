@@ -2,7 +2,12 @@ version: "3"
 
 services:
   gateway:
-    image: traefik:2.5
+    image: traefik:2.7
+    logging:
+      options:
+        max-file: "5"
+        max-size: "100m"
+        compress: true
     container_name: traefik-docker-gateway
     restart: unless-stopped
     security_opt:
@@ -16,7 +21,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - acme:/acme
     command:
-      - --log.level=info
+      - --log.level=error
       - --providers.docker
       - --providers.docker.exposedbydefault=false
       - --providers.docker.defaultRule=Host(`{{ index .Labels "expose.vhost"}}`)
@@ -29,6 +34,11 @@ services:
   # Catch-all default vhost
   default:
     image: nginx:stable-alpine
+    logging:
+      options:
+        max-file: "5"
+        max-size: "100m"
+        compress: true
     container_name: traefik-docker-gateway-default
     restart: unless-stopped
     security_opt:
