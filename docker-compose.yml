@@ -13,7 +13,7 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
-      - service-gateway
+      service-gateway:
     ports:
       - 80:80
       - 443:443
@@ -44,11 +44,14 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
-      - service-network
-      - service-gateway
+      service-network:
+        priority: 500
+      service-gateway:
+        priority: 100
     labels:
-      - traefik.enable=true
       - traefik.http.routers.default.rule=HostRegexp(`{default:.*}`) 
+      - traefik.enable=true
+      - traefik.docker.network=service-gateway
       - traefik.http.routers.default.entrypoints=http
       - traefik.http.middlewares.server-header.headers.customresponseheaders.server=service-gateway
       - traefik.http.routers.default.priority=1
@@ -65,4 +68,4 @@ networks:
 
 volumes:
   acme:
-    name: traefik-gateway-acme
+    name: service-gateway-acme

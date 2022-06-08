@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+ hello4nginx:
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    labels:
+      - expose.vhost=hello.example.com
+      - traefik.enable=true
+      - traefik.docker.network=service-gateway
+      - traefik.http.routers.${GSERVICE}.entrypoints=http
+      - traefik.http.routers.${GSERVICE}s.entrypoints=https
+      - traefik.http.routers.${GSERVICE}s.tls.certresolver=letsencrypt
+      - traefik.http.middlewares.redirect2https.redirectscheme.scheme=https
+      - traefik.http.middlewares.server-header.headers.customresponseheaders.server=service-gateway
+      - traefik.http.routers.${GSERVICE}.middlewares=server-header,redirect2https
+      - traefik.http.routers.${GSERVICE}s.middlewares=server-header
+    networks:
+      service-network:
+        priority: 500
+      service-gateway:
+        priority: 100
+
+networks:
+  service-network:
+    external: true
+  service-gateway:
+    external: true
