@@ -44,6 +44,7 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
+      - service-network
       - service-gateway
     labels:
       - traefik.enable=true
@@ -58,6 +59,9 @@ services:
 networks:
   service-gateway:
     name: service-gateway
+
+  service-network:
+    name: service-network
 
 volumes:
   acme:
