@@ -62,9 +62,13 @@ services:
 networks:
   service-gateway:
     name: service-gateway
+    driver_opts:
+      com.docker.network.bridge.name: br-gateway
 
   service-network:
     name: service-network
+    driver_opts:
+      com.docker.network.bridge.name: br-service
 
 volumes:
   acme:
