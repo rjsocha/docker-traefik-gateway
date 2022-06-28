@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 if docker compose version &>/dev/null
 then
-  exec docker compose up --quiet-pull --force-recreate -d
+  exec docker compose down
 if docker-compose version &>/dev/null
 then
-  exec docker-compose up --quiet-pull --force-recreate -d
+  exec docker-compose down
 fi
 echo "missing docker-compose or \"docker compose\"..."
 exit 1
