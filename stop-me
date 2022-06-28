@@ -2,6 +2,7 @@
 if docker compose version &>/dev/null
 then
   exec docker compose down
+fi
 if docker-compose version &>/dev/null
 then
   exec docker-compose down
