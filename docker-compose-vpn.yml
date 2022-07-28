@@ -57,11 +57,11 @@ services:
 
 networks:
   service-vpn-gateway:
-    name: service-vpn-gateway
+    name: svc-vpn-gw
     driver_opts:
-      com.docker.network.bridge.name: br-vpn-gateway
+      com.docker.network.bridge.name: br-vpn-gw
 
   service-vpn-network:
-    name: service-vpn-network
+    name: svc-vpn-net
     driver_opts:
-      com.docker.network.bridge.name: br-vpn-service
+      com.docker.network.bridge.name: br-vpn-svc

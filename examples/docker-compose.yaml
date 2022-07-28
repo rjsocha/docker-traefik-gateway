@@ -5,10 +5,10 @@ services:
     image: nginx:stable-alpine
     restart: unless-stopped
     labels:
-      - expose.service=${EXPOSE_SERVICE:-public}
+      - expose.service=public
       - expose.vhost=hello.example.com
       - traefik.enable=true
-      - traefik.docker.network=service-${EXPOSE_SERVICE:-public}-gateway
+      - traefik.docker.network=service-gateway
       - traefik.http.routers.${GSERVICE}.entrypoints=http
       - traefik.http.routers.${GSERVICE}s.entrypoints=https
       - traefik.http.routers.${GSERVICE}s.tls.certresolver=letsencrypt
@@ -17,13 +17,16 @@ services:
       - traefik.http.routers.${GSERVICE}.middlewares=server-header,redirect2https
       - traefik.http.routers.${GSERVICE}s.middlewares=server-header
     networks:
-      service-${EXPOSE_SERVICE:-public}-network:
+      service-public-network:
         priority: 500
-      service-${EXPOSE_SERVICE:-public}-gateway:
+      service-public-gateway:
         priority: 100
 
 networks:
-  service-${EXPOSE_SERVICE:-public}-network:
+  service-public-network:
     external: true
-  service-${EXPOSE_SERVICE:-public}-gateway:
+    name: svc-public-net
+
+  service-public-gateway:
     external: true
+    name: svc-public-gw
