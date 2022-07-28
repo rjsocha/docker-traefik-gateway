@@ -13,7 +13,7 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
-      service-public-gateway:
+      svc-wan-gateway:
     ports:
       - 80:80
       - 443:443
@@ -25,7 +25,7 @@ services:
       - --providers.docker
       - --providers.docker.exposedbydefault=false
       - --providers.docker.defaultRule=Host(`{{ index .Labels "expose.vhost"}}`)
-      - --providers.docker.constraints=Label(`expose.service`,`public`)
+      - --providers.docker.constraints=Label(`expose.service`,`wan`)
       - --entrypoints.http.address=:80
       - --entrypoints.https.address=:443
       - --certificatesresolvers.letsencrypt.acme.storage=/acme/acme.json
@@ -45,33 +45,33 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
-      service-public-network:
+      svc-wan-network:
         priority: 500
-      service-public-gateway:
+      svc-wan-gateway:
         priority: 100
     labels:
-      - expose.service=public
+      - expose.service=wan
       - traefik.http.routers.default.rule=HostRegexp(`{default:.*}`) 
       - traefik.enable=true
-      - traefik.docker.network=service-public-gateway
+      - traefik.docker.network=svc-wan-gateway
       - traefik.http.routers.default.entrypoints=http
-      - traefik.http.middlewares.server-header.headers.customresponseheaders.server=service-public-gateway
+      - traefik.http.middlewares.server-header.headers.customresponseheaders.server=service-wan-gateway
       - traefik.http.routers.default.priority=1
       - traefik.http.routers.default.middlewares=server-header
     volumes:
-      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ../config/nginx.conf:/etc/nginx/conf.d/default.conf
 
 networks:
-  service-public-gateway:
-    name: svc-public-gw
+  svc-wan-gateway:
+    name: svc-wan-gateway
     driver_opts:
-      com.docker.network.bridge.name: br-public-gw
+      com.docker.network.bridge.name: br-wan-gateway
 
-  service-public-network:
-    name: svc-public-net
+  svc-wan-network:
+    name: svc-wan-network
     driver_opts:
-      com.docker.network.bridge.name: br-public-svc
+      com.docker.network.bridge.name: br-wan-network
 
 volumes:
   acme:
-    name: service-public-gateway-acme
+    name: service-wan-gateway-acme
