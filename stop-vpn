@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+if docker compose version &>/dev/null
+then
+  exec docker compose -f docker-compose-vpn.yml down
+fi
+if docker-compose version &>/dev/null
+then
+  exec docker-compose -f -f docker-compose-vpn.yml down
+fi
+echo "missing docker-compose or \"docker compose\"..."
+exit 1

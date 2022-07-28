@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 if docker compose version &>/dev/null
 then
-  exec docker compose down
+  exec docker compose -f docker-compose-public.yml down
 fi
 if docker-compose version &>/dev/null
 then
-  exec docker-compose down
+  exec docker-compose -f docker-compose-public.yml down
 fi
 echo "missing docker-compose or \"docker compose\"..."
 exit 1
