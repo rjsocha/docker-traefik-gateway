@@ -15,8 +15,8 @@ services:
     networks:
       service-gateway:
     ports:
-      - 80:80
-      - 443:443
+      - ${GATEWAY_HTTP_BIND:-80}:80
+      - ${GATEWAY_HTTPS_BIND:-443}:443
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - acme:/acme
