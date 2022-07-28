@@ -56,6 +56,7 @@ services:
       - traefik.docker.network=svc-wan-gateway
       - traefik.http.routers.default.entrypoints=http
       - traefik.http.middlewares.server-header.headers.customresponseheaders.server=service-wan-gateway
+      - traefik.http.middlewares.redirect2https.redirectscheme.scheme=https
       - traefik.http.routers.default.priority=1
       - traefik.http.routers.default.middlewares=server-header
     volumes:
