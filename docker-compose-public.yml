@@ -63,14 +63,14 @@ services:
 
 networks:
   service-public-gateway:
-    name: service-public-gateway
+    name: svc-public-gw
     driver_opts:
-      com.docker.network.bridge.name: br-public-gateway
+      com.docker.network.bridge.name: br-public-gw
 
   service-public-network:
-    name: service-public-network
+    name: svc-public-net
     driver_opts:
-      com.docker.network.bridge.name: br-public-service
+      com.docker.network.bridge.name: br-public-svc
 
 volumes:
   acme:
