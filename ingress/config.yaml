@@ -1,0 +1,80 @@
+{{- $dashboard := true -}}
+{{- $dashboard_host := env "DASHBOARD" -}}
+{{- $dashboard_users := env "DASHBOARD_USERS" -}}
+{{- $dashboard_https := false -}}
+{{- if eq $dashboard_host "disabled" -}}
+{{- $dashboard = false -}}
+{{- end -}}
+{{- if $dashboard -}}
+{{- if mustRegexMatch "^https://" $dashboard_host -}}
+{{- $dashboard_https = true -}}
+{{- end -}}
+{{- $dashboard_host = replace "https://" "" $dashboard_host -}}
+{{- $dashboard_host = replace "http://" "" $dashboard_host -}}
+{{- if eq $dashboard_users "default" -}}
+{{- $dashboard_users = "traefik:$2y$05$cJ1UHTi8YxFMmhBZ5TZufO1atOV7pJ8L0JxUTI4y4haB0qbTF.VIq" -}}
+{{- end -}}
+{{- end -}}
+http:
+  middlewares:
+    http2https:
+      redirectScheme:
+        scheme: https
+        permanent: false
+
+{{ if $dashboard }}
+    auth4dashboard:
+      basicAuth:
+        realm: "[DASHBOARD]"
+        users:
+{{ range splitList "," $dashboard_users }}
+          - "{{.}}"
+{{ end }}
+{{ end }}
+
+  routers:
+{{ if $dashboard }}
+{{ if $dashboard_https }}
+    traefik-dashboard-http2https:
+      entryPoints:
+        - http
+      middlewares:
+        - http2https
+      service: noop@internal
+      rule: Host(`{{ $dashboard_host }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+      priority: 999
+
+    traefik-dashboard-https:
+      entryPoints:
+        - https
+      middlewares:
+        - auth4dashboard
+      service: api@internal
+      rule: Host(`{{ $dashboard_host }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+      priority: 999
+      tls:
+        certResolver: http
+{{ else }}
+    traefik-dashboard-http:
+      entryPoints:
+        - http
+      middlewares:
+        - auth4dashboard
+      service: api@internal
+      rule: Host(`{{ $dashboard_host }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+      priority: 999
+{{ end }}
+{{ end }}
+tls:
+  options:
+    default:
+      sniStrict: false
+      minVersion: VersionTLS12
+      # Based on https://ssl-config.mozilla.org/#server=traefik&version=2.1.2&config=intermediate&guideline=5.6
+      cipherSuites:
+        - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305

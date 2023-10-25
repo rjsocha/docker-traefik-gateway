@@ -1,0 +1,73 @@
+version: "3"
+name: "ingress"
+
+services:
+  ingress:
+    image: "traefik:${TRAEFIK_VERSION}"
+      #init: true
+    logging:
+      options:
+        max-file: "10"
+        max-size: "25m"
+        compress: "true"
+    container_name: "${COMPOSE_PROJECT_NAME}-traefik"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - ingress
+    ports:
+      - ${INGRESS_HTTP_BIND:-80}:80
+      - ${INGRESS_HTTPS_BIND:-443}:443
+      - ${INGRESS_VPN_BIND:?variable is required}:8080
+    environment:
+      DASHBOARD:        "${DASHBOARD:-disabled}"
+      DASHBOARD_USERS:  "${DASHBOARD_USERS:-default}"
+    volumes:
+      - ./config.yaml:/config/config.yaml:ro
+      - acme:/acme
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - --log.level=error
+      - --accesslog=true
+      - --providers.file.filename=/config/config.yaml
+      - --providers.file.watch=false
+      - --providers.docker.exposedbydefault=true
+      - --providers.docker.network=ingress
+      - --providers.docker.constraints=LabelRegex(`expose.ingress`,`^(yes|true|YES|TRUE)$`)
+      - --entrypoints.vpn.address=:8080
+      - --entrypoints.http.address=:80
+      - --entrypoints.https.address=:443
+      - --api.dashboard=true
+      - --certificatesresolvers.http.acme.storage=/acme/http-acme.json
+      - --certificatesresolvers.http.acme.httpchallenge=true
+      - --certificatesresolvers.http.acme.httpchallenge.entrypoint=http
+
+  default:
+    image: wyga/http:204
+    container_name: "${COMPOSE_PROJECT_NAME}-default"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-file: "10"
+        max-size: "25m"
+        compress: "true"
+    networks:
+      - ingress
+    labels:
+      - expose.ingress=yes
+      - traefik.http.routers.ingress-default.rule=HostRegexp(`{default:.*}`)
+      - traefik.http.routers.ingress-default.entrypoints=http
+      - traefik.http.routers.ingress-default.priority=1
+
+networks:
+  ingress:
+    name: "ingress"
+    external: true
+
+volumes:
+  acme:
+    name: "ingress-acme"
+    external: true

@@ -1,0 +1,20 @@
+version: "3"
+name: example-ingress-vpn
+
+services:
+  nginx:
+    image: nginx:stable-alpine-slim
+    restart: unless-stopped
+    labels:
+      - expose.vpn=yes
+      - expose.vhost=nginx.vpn.example.com
+    networks:
+      default:
+        priority: 500
+      ingress:
+        priority: 100
+
+networks:
+  ingress:
+    external: true
+    name: ingress

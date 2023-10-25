@@ -1,0 +1,25 @@
+version: "3"
+name: example-ingress
+
+services:
+  nginx:
+    image: nginx:stable-alpine-slim
+    restart: unless-stopped
+    labels:
+      - expose.ingress=yes
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.rule=Host(`nginx.example.com`)
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-https.rule=Host(`nginx.example.com`)
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.entrypoints=http
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-https.entrypoints=https
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-https.tls.certresolver=http
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.middlewares=http2https@file
+    networks:
+      default:
+        priority: 500
+      ingress:
+        priority: 100
+
+networks:
+  ingress:
+    external: true
+    name: ingress

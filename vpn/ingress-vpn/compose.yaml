@@ -1,0 +1,60 @@
+version: "3"
+name: "ingress-vpn"
+
+services:
+  ingress:
+    image: "traefik:${TRAEFIK_VERSION}"
+    logging:
+      options:
+        max-file: "10"
+        max-size: "25m"
+        compress: "true"
+    container_name: "${COMPOSE_PROJECT_NAME}-traefik"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - ingress
+    ports:
+      - ${INGRESS_HTTP_BIND:-80}:80
+    environment:
+      DASHBOARD:        "${DASHBOARD:-disabled}"
+      DASHBOARD_USERS:  "${DASHBOARD_USERS:-default}"
+    volumes:
+      - ./config.yaml:/config/config.yaml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - --log.level=error
+      - --accesslog=true
+      - --providers.file.filename=/config/config.yaml
+      - --providers.file.watch=false
+      - --providers.docker.exposedbydefault=true
+      - --providers.docker.network=ingress
+      - --providers.docker.defaultRule=Host(`{{ index .Labels "expose.vhost"}}`)
+      - --providers.docker.constraints=LabelRegex(`expose.vpn`,`^(yes|true|YES|TRUE)$`)
+      - --entrypoints.http.address=:80
+      - --api.dashboard=true
+
+  default:
+    image: wyga/http:204
+    container_name: "${COMPOSE_PROJECT_NAME}-default"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-file: "10"
+        max-size: "25m"
+        compress: "true"
+    networks:
+      - ingress
+    labels:
+      - expose.vpn=yes
+      - traefik.http.routers.ingress-default.rule=HostRegexp(`{default:.*}`)
+      - traefik.http.routers.ingress-default.entrypoints=http
+      - traefik.http.routers.ingress-default.priority=1
+
+networks:
+  ingress:
+    name: "ingress"
+    external: true

@@ -1,33 +1,62 @@
+# Traefik Gateway for Docker Services (Docker Compose)
 
-Traefik gateway for docker(-compose) services.
+This repository provides a Traefik gateway configuration for managing Docker services using Docker Compose.
 
-## Info
+## Flavors
 
-Do not start both instances (vpn, public) from same project directory...
+Choose from the following flavors:
 
+- **ingress**: Standard configuration for exposing Docker containers.
+- **ingress-vpn**: A configuration for use with VPN connections (generic).
 
-## Start
+## Getting Started with Ingress Flavor
+
+### Setup
+
+To get started with the **ingress** flavor, run the following command:
+
+```shell
+ingress/setup-docker-env
 ```
-	git clone https://github.com/rjsocha/docker-traefik-gateway.git
-	cd docker-traefik-gateway
-	docker-compose up -d
+
+This command will create an "ingress" network for exposing Docker containers and an ACME volume for storing SSL/TLS certificates.
+
+### Entrypoints
+
+  - http
+  - https
+
+### ACME Resolvers (Let's Encrypt)
+
+  - http
+
+### Middlewares
+
+  - http2https@file - redirection from http:// to https://
+
+### Exposing services
+
 ```
+    ...
+  services:
+    example:
+      image: ...
+      labels:
+        - expose.ingress=yes
+        - traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.rule=Host(`sample.example.com`)
+        - traefik.http.routers.${COMPOSE_PROJECT_NAME}-https.rule=Host(`sample.example.com`)
+        - traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.entrypoints=http
+        - traefik.http.routers.${COMPOSE_PROJECT_NAME}-https.entrypoints=https
+        - traefik.http.routers.${COMPOSE_PROJECT_NAME}-https.tls.certresolver=http
+        - traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.middlewares=http2https@file
+      networks:
+        default:
+          priority: 500
+        ingress:
+          priority: 100
 
-## Verification
-```
-	docker network ls -f "name=service-gateway" --no-trunc
-	docker ps -f "name=traefik-docker-gateway" --no-trunc
-	docker logs traefik-docker-gateway
-```
-
-## Examples 
-Example (hello.domain.example is example domain - make sure to point your DNS to the gateway):
-
-```
-docker-compose -p example -f examples/example.yml up -d
-docker-compose -p example -f examples/example.yml down
-
-curl -v 127.0.0.1
-curl -v -H "Host: hello.example.com" 127.0.0.1
-
+  networks:
+    ingress:
+      external: true
+      name: ingress
 ```

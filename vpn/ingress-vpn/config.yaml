@@ -1,0 +1,37 @@
+{{- $dashboard := true -}}
+{{- $dashboard_host := env "DASHBOARD" -}}
+{{- $dashboard_users := env "DASHBOARD_USERS" -}}
+{{- if eq $dashboard_host "disabled" -}}
+{{- $dashboard = false -}}
+{{- end -}}
+{{- if $dashboard -}}
+{{- $dashboard_host = replace "https://" "" $dashboard_host -}}
+{{- $dashboard_host = replace "http://" "" $dashboard_host -}}
+{{- $dashboard_host = replace "vpn://" "" $dashboard_host -}}
+{{- if eq $dashboard_users "default" -}}
+{{- $dashboard_users = "traefik:$2y$05$cJ1UHTi8YxFMmhBZ5TZufO1atOV7pJ8L0JxUTI4y4haB0qbTF.VIq" -}}
+{{- end -}}
+{{- end -}}
+http:
+  middlewares:
+{{ if $dashboard }}
+    auth4dashboard:
+      basicAuth:
+        realm: "[DASHBOARD]"
+        users:
+{{ range splitList "," $dashboard_users }}
+          - "{{.}}"
+{{ end }}
+{{ end }}
+
+  routers:
+{{ if $dashboard }}
+    traefik-dashboard-http:
+      entryPoints:
+        - http
+      middlewares:
+        - auth4dashboard
+      service: api@internal
+      rule: Host(`{{ $dashboard_host }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+      priority: 999
+{{ end }}
