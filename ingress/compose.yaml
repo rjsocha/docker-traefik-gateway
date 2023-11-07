@@ -31,15 +31,18 @@ services:
       - --accesslog=true
       - --providers.file.filename=/config/config.yaml
       - --providers.file.watch=false
-      - --providers.docker.exposedbydefault=true
       - --providers.docker.network=ingress
-      - --providers.docker.constraints=LabelRegex(`expose.ingress`,`^(yes|true|YES|TRUE)$`)
+      - --providers.docker.defaultRule=Host(`{{ index .Labels "expose.vhost"}}`)
+      - --providers.docker.constraints=LabelRegex(`expose.ingress`,`(?i)^(yes|true|on|enable|allow|activate|active|use)$`) || LabelRegex(`expose.vhost`,`.+`)
       - --entrypoints.http.address=:80
       - --entrypoints.https.address=:443
+      - --entrypoints.https.http.tls.certresolver=http
       - --api.dashboard=true
+      - --api.disabledashboardad=true
       - --certificatesresolvers.http.acme.storage=/acme/http-acme.json
-      - --certificatesresolvers.http.acme.httpchallenge=true
       - --certificatesresolvers.http.acme.httpchallenge.entrypoint=http
+      - --global.checknewversion=false
+      - --global.sendanonymoususage=false
 
   default:
     image: wyga/http:204

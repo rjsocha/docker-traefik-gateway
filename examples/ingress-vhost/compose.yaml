@@ -1,0 +1,20 @@
+version: "3"
+name: example-ingress
+
+services:
+  nginx:
+    image: nginx:stable-alpine-slim
+    restart: unless-stopped
+    labels:
+      - expose.vhost=nginx.example.com
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}.middlewares=http2https@file
+    networks:
+      default:
+        priority: 500
+      ingress:
+        priority: 100
+
+networks:
+  ingress:
+    external: true
+    name: ingress

@@ -11,7 +11,6 @@ services:
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}-https.rule=Host(`nginx.example.com`)
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.entrypoints=http
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}-https.entrypoints=https
-      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-https.tls.certresolver=http
       - traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.middlewares=http2https@file
     networks:
       default:
