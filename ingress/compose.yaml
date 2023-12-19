@@ -20,7 +20,7 @@ services:
       - ${INGRESS_HTTP_BIND:-80}:80
       - ${INGRESS_HTTPS_BIND:-443}:443
     environment:
-      DASHBOARD:        "${DASHBOARD:-disabled}"
+      DASHBOARD:        "${DASHBOARD:-}"
       DASHBOARD_USERS:  "${DASHBOARD_USERS:-default}"
     volumes:
       - ./config.yaml:/config/config.yaml:ro

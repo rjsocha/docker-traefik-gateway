@@ -2,7 +2,7 @@
 {{- $dashboard_host := env "DASHBOARD" -}}
 {{- $dashboard_users := env "DASHBOARD_USERS" -}}
 {{- $dashboard_https := false -}}
-{{- if eq $dashboard_host "disabled" -}}
+{{- if eq $dashboard_host "" -}}
 {{- $dashboard = false -}}
 {{- end -}}
 {{- if $dashboard -}}
